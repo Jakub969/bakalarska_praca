@@ -2,6 +2,11 @@
 
 #include <QtWidgets/QWidget>
 #include "ui_bakalarska_praca.h"
+#include <QtWidgets/QApplication>
+#include <QtWidgets/qfiledialog.h>
+#include <QtWidgets/qlineedit.h>
+#include <QtWidgets/qpushbutton.h>
+#include <QtWidgets/qboxlayout.h>
 
 class bakalarska_praca : public QWidget
 {
@@ -12,8 +17,9 @@ public:
     ~bakalarska_praca();
 
 private slots:
-    void on_closeBtn_clicked();
+    void choosePath();
 
 private:
-    Ui::bakalarska_pracaClass ui;
+    //Ui::bakalarska_pracaClass ui;
+    QLineEdit* pathLineEdit;
 };
