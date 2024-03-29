@@ -16,22 +16,24 @@ Song SMMaker::bestFit(std::tuple<double, double, double> result)
     con = driver->connect("sql.endora.cz:3311", "jakubhrubizna", "Jakub1");
 
     con->setSchema("jakubhrubizna");
+    
     double analyzedBpm = std::get<0>(result);
     double analyzedOffset = std::get<1>(result);
     double analyzedSampleLength = std::get<2>(result);
+    
     // TODO 
     // Ak sa nenajde v danom rozptyle BPM tak zmen toleranciu a vyhladaj znova
-    //double analyzedBpm = 77.4969;
-    //double analyzedOffset = 0;
-    //double analyzedSampleLength = 221.356;
-
+    /*
+    double analyzedBpm = 165.938;
+    double analyzedOffset = 123.25;
+    double analyzedSampleLength = 123.429;
+    */
     double bpmTolerance = 1.0;
     double offsetTolerance = 0.5;
 
     std::stringstream query;
     query << "SELECT * FROM songs WHERE "
-        << "ABS(SUBSTRING_INDEX(bpms, '=', -1) - " << analyzedBpm << ") < " << bpmTolerance << " AND "
-        << "ABS(offset - " << analyzedOffset << ") < " << offsetTolerance;
+        << "ABS(SUBSTRING_INDEX(bpms, '=', -1) - " << analyzedBpm << ") < " << bpmTolerance;
 
 
     //BPM: 163.651 offset: 0 sampleLength: 215.528
@@ -44,7 +46,6 @@ Song SMMaker::bestFit(std::tuple<double, double, double> result)
                 break;
             }
             bpmTolerance = bpmTolerance + 1.0;
-            offsetTolerance = 1.0;
             res = stmt->executeQuery(query.str());
         }
         std::vector<Song> songs;
@@ -89,10 +90,10 @@ Song SMMaker::bestFit(std::tuple<double, double, double> result)
 
         for (const auto& song : songs) {
             double bpmDifference = std::abs(std::stod(song.getBpms().substr(song.getBpms().find('=') + 1)) - analyzedBpm);
-            double offsetDifference = std::abs(std::stod(song.getOffset()) - analyzedOffset);
+            //double offsetDifference = std::abs(std::stod(song.getOffset()) - analyzedOffset);
 
             // Vypoèítaný celkový rozdiel na základe všetkých kritérií
-            double totalDifference = bpmDifference + offsetDifference;
+            double totalDifference = bpmDifference; //+ offsetDifference;
 
             if (totalDifference < smallestDifference) {
                 smallestDifference = totalDifference;
@@ -116,18 +117,18 @@ Song SMMaker::bestFit(std::tuple<double, double, double> result)
     return Song();
 }
 
-void SMMaker::createSMfile(Song song, std::string path)
+void SMMaker::createSMfile(Song song, std::string path1, std::string path2)
 {
-    size_t start = path.find_last_of("/") + 1;
-    size_t end = path.find_last_of(".");
-    std::string filename = path.substr(start, end - start);
-    std::string directoryPath = path;
-    if (end != 0) {
-        std::string directoryPath = path.substr(0, start);
+    size_t start = path1.find_last_of("/") + 1;
+    size_t end = path1.find_last_of(".");
+    std::string filename = path1.substr(start, end - start);
+    std::string directoryPath = path2;
+    if (path1 == path2) {
+        directoryPath = path1.substr(0, start);
     }
     std::filesystem::create_directory(directoryPath + "/" + filename);
     std::ofstream file(directoryPath + "/" + filename + "/" + filename + ".sm");
-    std::filesystem::copy(path, directoryPath + "/" + filename + "/" + filename + ".mp3");
+    std::filesystem::copy(path1, directoryPath + "/" + filename + "/" + filename + ".mp3");
 
     file << "#TITLE:" << filename << ";\n";
     file << "#SUBTITLE:;\n";

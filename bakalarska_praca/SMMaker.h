@@ -5,6 +5,6 @@ class SMMaker
 public:
 	SMMaker() = default;
 	Song bestFit(std::tuple<double, double, double> result);
-	void createSMfile(Song song, std::string path);
+	void createSMfile(Song song, std::string path1, std::string path2);
 };
 

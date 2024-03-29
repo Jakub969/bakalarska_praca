@@ -6,8 +6,6 @@ bakalarska_praca::bakalarska_praca(QWidget *parent)
     //ui.setupUi(this);
     //setFixedSize(750, 500);
 
-    setAttribute(Qt::WA_DeleteOnClose);
-
     pathLineEdit1 = new QLineEdit;
     pathLineEdit1->setReadOnly(true);
     pathLineEdit1->setText("Zadajte .mp3 subor alebo .ogg subor");
@@ -104,17 +102,17 @@ void bakalarska_praca::runProgram() {
         QMetaObject::invokeMethod(progressBar, "setRange", Q_ARG(int, 0), Q_ARG(int, songLengthInSeconds));
 
         QMetaObject::invokeMethod(timer, "start", Q_ARG(int, 1000));
-
         std::tuple<double, double, double> result = detector.detectBPM(path1Str);
         SMMaker maker;
         Song song = maker.bestFit(result);
+        std::cout << song.getArtist() << song.getTitle();
         // skontrolova èi je path2 plne inak pouzi path1
-        if (path2Str.empty()) {
-            maker.createSMfile(song, path1Str);
+        if (path2Str == "" || path2Str == "Zadajte cestu kde sa ma vytvorit priecinok (nepovinne)") {
+            maker.createSMfile(song, path1Str, path1Str);
         }
         else
         {
-            maker.createSMfile(song, path2Str);
+            maker.createSMfile(song, path1Str, path2Str);
         }
         });
 }
@@ -129,15 +127,31 @@ void bakalarska_praca::updateProgressBar() {
         pathButton1->setEnabled(true);
         pathButton2->setEnabled(true);
         runButton->setEnabled(true);
+        progressBar->setValue(0);
+        progressBar->setVisible(false);
     }
     else {
         progressBar->setValue(value + 1);
     }
 }
 
+void bakalarska_praca::closeFunction()
+{
+    detector.setShouldStopToTrue();
+    if (future.isRunning())
+    {
+        future.cancel();
+    }
+    this->close();
+}
+
 
 bakalarska_praca::~bakalarska_praca()
 {
-    detector.setShouldStopToTrue();
-    future.waitForFinished();
+    delete pathLineEdit1;
+    delete pathLineEdit2;
+    delete pathButton1;
+    delete pathButton2;
+    delete runButton;
+    delete progressBar;
 }

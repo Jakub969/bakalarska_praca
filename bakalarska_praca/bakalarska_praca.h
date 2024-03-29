@@ -10,6 +10,7 @@
 #include <QtWidgets/qprogressbar.h>
 #include <qtimer.h>
 #include <QtConcurrent/qtconcurrentrun.h>
+#include <qevent.h>
 #include "FileManager.h"
 #include "BPMDetector.h"
 #include "SMMaker.h"
@@ -22,10 +23,17 @@ public:
     bakalarska_praca(QWidget *parent = nullptr);
     ~bakalarska_praca();
 
+protected:
+    void closeEvent(QCloseEvent* event) override {
+        closeFunction();
+        event->accept();
+    }
+
 private slots:
     void choosePath();
     void runProgram();
     void updateProgressBar();
+    void closeFunction();
 
 private:
     QFuture<void> future;
