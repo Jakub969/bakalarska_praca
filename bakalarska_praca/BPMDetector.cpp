@@ -4,6 +4,7 @@ BPMDetector::BPMDetector() {
 }
 
 std::tuple<double, double, double> BPMDetector::detectBPM(const std::string& songPath) {
+    shouldStop = false;
     double bpm = 0.0;
     double offset = 0.0;
     double lengthInSeconds = 0.0;
@@ -42,6 +43,12 @@ std::tuple<double, double, double> BPMDetector::detectBPM(const std::string& son
     std::cout << "Prebieha detekcia BPM" << std::endl;
     // Dekódovanie skladby a detekcia BPM
     while (BASS_ChannelIsActive(channel) == BASS_ACTIVE_PLAYING) {
+        if (shouldStop)
+        {
+            BASS_ChannelStop(channel);
+            return std::make_tuple(0.0, 0.0, 0.0);
+        }
+
         short bufferShort[8192];
         DWORD bytesRead = BASS_ChannelGetData(channel, bufferShort, sizeof(bufferShort));
         if (bytesRead == -1) {
@@ -60,6 +67,11 @@ std::tuple<double, double, double> BPMDetector::detectBPM(const std::string& son
         for (int i = 0; i < bytesRead / 2; i++) {
             bufferFloat[i] = bufferShort[i] / 32767.0f;  // Normalizácia hodnôt na rozsah -1.0 až 1.0
             //std::cout << "bufferShort[" << i << "]" << bufferShort[i] << std::endl;
+            if (shouldStop)
+            {
+                BASS_ChannelStop(channel);
+                return std::make_tuple(0.0, 0.0, 0.0);
+            }
         }
 
         offset = BASS_ChannelBytes2Seconds(channel, BASS_ChannelGetPosition(channel, BASS_POS_BYTE));
@@ -106,5 +118,10 @@ double BPMDetector::getLengthInSeconds(const std::string& songPath)
     BASS_SampleFree(sample);
     BASS_Free();
     return lengthInSeconds;
+}
+
+void BPMDetector::setShouldStopToTrue()
+{
+    shouldStop = true;
 }
 

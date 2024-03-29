@@ -1,7 +1,4 @@
 #include "bakalarska_praca.h"
-#include "FileManager.h"
-#include "BPMDetector.h"
-#include "SMMaker.h"
 
 bakalarska_praca::bakalarska_praca(QWidget *parent)
     : QWidget(parent)
@@ -59,12 +56,12 @@ void bakalarska_praca::choosePath() {
     QString dir;
 
     if (sender() == pathButton1) {
-        dir = QFileDialog::getOpenFileName(this, tr("Choose File"),
+        dir = QFileDialog::getOpenFileName(this, tr("Vyberte subor"),
             "/home",
             tr("Audio Files (*.mp3 *.ogg)"));
     }
     else if (sender() == pathButton2) {
-        dir = QFileDialog::getExistingDirectory(this, tr("Choose Directory"),
+        dir = QFileDialog::getExistingDirectory(this, tr("Vyberte priecinok"),
             "/home",
             QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     }
@@ -103,7 +100,6 @@ void bakalarska_praca::runProgram() {
     connect(timer, &QTimer::timeout, this, &bakalarska_praca::updateProgressBar);
 
     future = QtConcurrent::run([=] {
-        BPMDetector detector;
         double songLengthInSeconds = detector.getLengthInSeconds(path1Str);
         QMetaObject::invokeMethod(progressBar, "setRange", Q_ARG(int, 0), Q_ARG(int, songLengthInSeconds));
 
@@ -142,5 +138,6 @@ void bakalarska_praca::updateProgressBar() {
 
 bakalarska_praca::~bakalarska_praca()
 {
+    detector.setShouldStopToTrue();
     future.waitForFinished();
 }

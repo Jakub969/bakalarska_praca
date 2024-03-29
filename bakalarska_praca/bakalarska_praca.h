@@ -10,6 +10,9 @@
 #include <QtWidgets/qprogressbar.h>
 #include <qtimer.h>
 #include <QtConcurrent/qtconcurrentrun.h>
+#include "FileManager.h"
+#include "BPMDetector.h"
+#include "SMMaker.h"
 
 class bakalarska_praca : public QWidget
 {
@@ -32,4 +35,5 @@ private:
     QPushButton* pathButton2;
     QPushButton* runButton;
     QProgressBar* progressBar;
+    BPMDetector detector;
 };

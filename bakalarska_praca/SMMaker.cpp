@@ -25,7 +25,7 @@ Song SMMaker::bestFit(std::tuple<double, double, double> result)
     //double analyzedOffset = 0;
     //double analyzedSampleLength = 221.356;
 
-    double bpmTolerance = 1;
+    double bpmTolerance = 1.0;
     double offsetTolerance = 0.5;
 
     std::stringstream query;
@@ -38,7 +38,15 @@ Song SMMaker::bestFit(std::tuple<double, double, double> result)
     try {
         sql::Statement* stmt = con->createStatement();
         sql::ResultSet* res = stmt->executeQuery(query.str());
-
+        while (true) {
+            // Ak sa nájde zhoda, opustime cyklus
+            if (res->next()) {
+                break;
+            }
+            bpmTolerance = bpmTolerance + 1.0;
+            offsetTolerance = 1.0;
+            res = stmt->executeQuery(query.str());
+        }
         std::vector<Song> songs;
 
         while (res->next()) {
