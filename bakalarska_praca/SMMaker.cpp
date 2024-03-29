@@ -113,7 +113,10 @@ void SMMaker::createSMfile(Song song, std::string path)
     size_t start = path.find_last_of("/") + 1;
     size_t end = path.find_last_of(".");
     std::string filename = path.substr(start, end - start);
-    std::string directoryPath = path.substr(0, start);
+    std::string directoryPath = path;
+    if (end != 0) {
+        std::string directoryPath = path.substr(0, start);
+    }
     std::filesystem::create_directory(directoryPath + "/" + filename);
     std::ofstream file(directoryPath + "/" + filename + "/" + filename + ".sm");
     std::filesystem::copy(path, directoryPath + "/" + filename + "/" + filename + ".mp3");

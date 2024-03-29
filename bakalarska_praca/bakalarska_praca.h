@@ -7,6 +7,9 @@
 #include <QtWidgets/qlineedit.h>
 #include <QtWidgets/qpushbutton.h>
 #include <QtWidgets/qboxlayout.h>
+#include <QtWidgets/qprogressbar.h>
+#include <qtimer.h>
+#include <QtConcurrent/qtconcurrentrun.h>
 
 class bakalarska_praca : public QWidget
 {
@@ -18,8 +21,15 @@ public:
 
 private slots:
     void choosePath();
+    void runProgram();
+    void updateProgressBar();
 
 private:
-    //Ui::bakalarska_pracaClass ui;
-    QLineEdit* pathLineEdit;
+    QFuture<void> future;
+    QLineEdit* pathLineEdit1;
+    QLineEdit* pathLineEdit2;
+    QPushButton* pathButton1;
+    QPushButton* pathButton2;
+    QPushButton* runButton;
+    QProgressBar* progressBar;
 };
