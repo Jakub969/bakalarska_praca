@@ -7,7 +7,7 @@
 #include "cppconn/statement.h"
 #include <filesystem>
 
-Song SMMaker::bestFit(std::tuple<double, double, double> result)
+Song SMMaker::bestFit(double result)
 {
     sql::mysql::MySQL_Driver* driver;
     sql::Connection* con;
@@ -17,26 +17,19 @@ Song SMMaker::bestFit(std::tuple<double, double, double> result)
 
     con->setSchema("jakubhrubizna");
     
-    double analyzedBpm = std::get<0>(result);
-    double analyzedOffset = std::get<1>(result);
-    double analyzedSampleLength = std::get<2>(result);
+    double analyzedBpm = result;
     
     // TODO 
     // Ak sa nenajde v danom rozptyle BPM tak zmen toleranciu a vyhladaj znova
     /*
     double analyzedBpm = 165.938;
-    double analyzedOffset = 123.25;
-    double analyzedSampleLength = 123.429;
     */
     double bpmTolerance = 1.0;
-    double offsetTolerance = 0.5;
 
     std::stringstream query;
     query << "SELECT * FROM songs WHERE "
         << "ABS(SUBSTRING_INDEX(bpms, '=', -1) - " << analyzedBpm << ") < " << bpmTolerance;
 
-
-    //BPM: 163.651 offset: 0 sampleLength: 215.528
     try {
         sql::Statement* stmt = con->createStatement();
         sql::ResultSet* res = stmt->executeQuery(query.str());
@@ -90,10 +83,9 @@ Song SMMaker::bestFit(std::tuple<double, double, double> result)
 
         for (const auto& song : songs) {
             double bpmDifference = std::abs(std::stod(song.getBpms().substr(song.getBpms().find('=') + 1)) - analyzedBpm);
-            //double offsetDifference = std::abs(std::stod(song.getOffset()) - analyzedOffset);
 
-            // Vypoèítaný celkový rozdiel na základe všetkých kritérií
-            double totalDifference = bpmDifference; //+ offsetDifference;
+            // Vypoèítaný celkový rozdiel na základe kritérií
+            double totalDifference = bpmDifference;
 
             if (totalDifference < smallestDifference) {
                 smallestDifference = totalDifference;
@@ -101,7 +93,7 @@ Song SMMaker::bestFit(std::tuple<double, double, double> result)
             }
         }
 
-        std::cout << "The best match is: " << bestMatch.getBpms() << "\n";
+        std::cout << "Najlepsa zhoda je: " << bestMatch.getBpms() << "\n";
 
         delete res;
         delete stmt;

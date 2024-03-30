@@ -3,8 +3,6 @@
 bakalarska_praca::bakalarska_praca(QWidget *parent)
     : QWidget(parent)
 {
-    //ui.setupUi(this);
-    //setFixedSize(750, 500);
 
     pathLineEdit1 = new QLineEdit;
     pathLineEdit1->setReadOnly(true);
@@ -31,18 +29,18 @@ bakalarska_praca::bakalarska_praca(QWidget *parent)
     runButton = new QPushButton("Spustit program");
     connect(runButton, &QPushButton::clicked, this, &bakalarska_praca::runProgram);
 
-    QHBoxLayout* layout1 = new QHBoxLayout;
+    layout1 = new QHBoxLayout;
     layout1->addWidget(pathLineEdit1);
     layout1->addWidget(pathButton1);
 
-    QHBoxLayout* layout2 = new QHBoxLayout;
+    layout2 = new QHBoxLayout;
     layout2->addWidget(pathLineEdit2);
     layout2->addWidget(pathButton2);
 
     progressBar = new QProgressBar;
     progressBar->setVisible(false);
 
-    QVBoxLayout* mainLayout = new QVBoxLayout;
+    mainLayout = new QVBoxLayout;
     mainLayout->addLayout(layout1);
     mainLayout->addLayout(layout2);
     mainLayout->addWidget(runButton);
@@ -94,7 +92,7 @@ void bakalarska_praca::runProgram() {
     progressBar->setVisible(true);
     progressBar->setValue(0);
 
-    QTimer* timer = new QTimer(this);
+    timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &bakalarska_praca::updateProgressBar);
 
     future = QtConcurrent::run([=] {
@@ -102,7 +100,7 @@ void bakalarska_praca::runProgram() {
         QMetaObject::invokeMethod(progressBar, "setRange", Q_ARG(int, 0), Q_ARG(int, songLengthInSeconds));
 
         QMetaObject::invokeMethod(timer, "start", Q_ARG(int, 1000));
-        std::tuple<double, double, double> result = detector.detectBPM(path1Str);
+        double result = detector.detectBPM(path1Str);
         SMMaker maker;
         Song song = maker.bestFit(result);
         std::cout << song.getArtist() << song.getTitle();
@@ -145,7 +143,6 @@ void bakalarska_praca::closeFunction()
     this->close();
 }
 
-
 bakalarska_praca::~bakalarska_praca()
 {
     delete pathLineEdit1;
@@ -154,4 +151,10 @@ bakalarska_praca::~bakalarska_praca()
     delete pathButton2;
     delete runButton;
     delete progressBar;
+    delete layout1;
+    delete layout2;
+    delete mainLayout;
+    if (timer != nullptr) {
+        delete timer;
+    }
 }

@@ -43,5 +43,9 @@ private:
     QPushButton* pathButton2;
     QPushButton* runButton;
     QProgressBar* progressBar;
+    QHBoxLayout* layout1;
+    QHBoxLayout* layout2;
+    QVBoxLayout* mainLayout;
+    QTimer* timer = nullptr;
     BPMDetector detector;
 };

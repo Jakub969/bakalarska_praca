@@ -3,16 +3,14 @@
 BPMDetector::BPMDetector() {
 }
 
-std::tuple<double, double, double> BPMDetector::detectBPM(const std::string& songPath) {
+double BPMDetector::detectBPM(const std::string& songPath) {
     shouldStop = false;
     double bpm = 0.0;
-    double offset = 0.0;
-    double lengthInSeconds = 0.0;
 
     // Inicializácia BASS knižnice
     if (!BASS_Init(-1, 44100, 0, 0, NULL)) {
         std::cerr << "Nepodarilo sa inicializova BASS knižnicu.\n";
-        return std::make_tuple(0.0, 0.0, 0.0);
+        return 0.0;
     }
     else {
         std::cout << "Podarilo sa nainicializovat kniznicu.\n";
@@ -22,7 +20,7 @@ std::tuple<double, double, double> BPMDetector::detectBPM(const std::string& son
     HSAMPLE sample = BASS_SampleLoad(false, songPath.c_str(), 0, 0, 3, BASS_SAMPLE_MONO);
     if (!sample) {
         std::cerr << "Nepodarilo sa naèíta skladbu.\n";
-        return std::make_tuple(0.0, 0.0, 0.0);
+        return 0.0;
     }
     else {
         std::cout << "Podarilo sa nacitat skladbu.\n";
@@ -34,9 +32,6 @@ std::tuple<double, double, double> BPMDetector::detectBPM(const std::string& son
     // Spustenie prehrávania
     BASS_ChannelPlay(channel, false);
 
-    // Získanie dåžky skladby v sekundách
-    lengthInSeconds = BASS_ChannelBytes2Seconds(channel, BASS_ChannelGetLength(channel, BASS_POS_BYTE));
-
     // Vytvorenie objektu BPMDetect
     soundtouch::BPMDetect bpmDetect(1, 44100);
 
@@ -46,7 +41,9 @@ std::tuple<double, double, double> BPMDetector::detectBPM(const std::string& son
         if (shouldStop)
         {
             BASS_ChannelStop(channel);
-            return std::make_tuple(0.0, 0.0, 0.0);
+            BASS_SampleFree(sample);
+            BASS_Free();
+            return 0.0;
         }
 
         short bufferShort[8192];
@@ -70,12 +67,11 @@ std::tuple<double, double, double> BPMDetector::detectBPM(const std::string& son
             if (shouldStop)
             {
                 BASS_ChannelStop(channel);
-                return std::make_tuple(0.0, 0.0, 0.0);
+                BASS_SampleFree(sample);
+                BASS_Free();
+                return 0.0;
             }
         }
-
-        offset = BASS_ChannelBytes2Seconds(channel, BASS_ChannelGetPosition(channel, BASS_POS_BYTE));
-
         // Pridanie dát do BPMDetect
         bpmDetect.inputSamples(bufferFloat, bytesRead / 2);
 
@@ -83,11 +79,11 @@ std::tuple<double, double, double> BPMDetector::detectBPM(const std::string& son
     }
     bpm = bpmDetect.getBpm();
 
-    std::cout << "BPM: " << bpm << " offset: " << offset << " sampleLength: " << lengthInSeconds << std::endl;
+    std::cout << "BPM: " << bpm << std::endl;
 
     BASS_SampleFree(sample);
     BASS_Free();
-    return std::make_tuple(bpm, offset, lengthInSeconds);
+    return bpm;
 }
 
 double BPMDetector::getLengthInSeconds(const std::string& songPath)
