@@ -16,7 +16,6 @@ Song SMMaker::bestFit(double result)
     con = driver->connect("sql.endora.cz:3311", "jakubhrubizna", "Jakub1");
 
     con->setSchema("jakubhrubizna");
-    
     double analyzedBpm = result;
     
     // TODO 
@@ -26,24 +25,26 @@ Song SMMaker::bestFit(double result)
     */
     double bpmTolerance = 1.0;
 
-    std::stringstream query;
-    query << "SELECT * FROM songs WHERE "
-        << "ABS(SUBSTRING_INDEX(bpms, '=', -1) - " << analyzedBpm << ") < " << bpmTolerance;
-
     try {
         sql::Statement* stmt = con->createStatement();
-        sql::ResultSet* res = stmt->executeQuery(query.str());
+        sql::ResultSet* res;
         while (true) {
+            std::stringstream query;
+            query << "SELECT * FROM songs WHERE "
+                << "ABS(SUBSTRING_INDEX(bpms, '=', -1) - " << analyzedBpm << ") < " << bpmTolerance;
+            
+            res = stmt->executeQuery(query.str());
+
             // Ak sa nájde zhoda, opustime cyklus
             if (res->next()) {
                 break;
             }
             bpmTolerance = bpmTolerance + 1.0;
-            res = stmt->executeQuery(query.str());
+
         }
         std::vector<Song> songs;
 
-        while (res->next()) {
+        do {
             Song song(
                 res->isNull("title") ? "null" : res->getString("title"),
                 res->isNull("subtitle") ? "null" : res->getString("subtitle"),
@@ -75,7 +76,7 @@ Song SMMaker::bestFit(double result)
             );
             songs.push_back(song);
             std::cout << "Song: " << res->getString("title") << " bpm: " << res->getString("bpms") << " offset: " << res->getString("offset") << " samplelength: " << res->getString("samplelength") << "\n";
-        }
+        } while (res->next());
 
 
         Song bestMatch;
